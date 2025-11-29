@@ -17,11 +17,11 @@ pipeline {
         // SONAR_TOKEN = 'a3eb29305a87204344cb70bd743abf2fded33f76' 
         // Repo folders from repo GitHub
         
-        backendF = "employee-management/emp_backend"
-        frontendF = "employee-management/emp_frontend"
+        backendF = "emp_backend"
+        frontendF = "emp_frontend"
 
         // URL du repo GitHub
-        GIT_REPO = "https://github.com/NadaBensalem/emp_app.git"
+        GIT_REPO = "https://github.com/NadaBensalem/emp_jenkins_k8s.git"
     }
 
     stages {
