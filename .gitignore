@@ -1,0 +1,79 @@
+### Backend (emp_backend - Spring) ###
+
+# Maven - emp_backend
+emp_backend/target/
+emp_backend!.mvn/wrapper/maven-wrapper.jar
+emp_backend!**/src/main/**/target/
+emp_backend!**/src/test/**/target/
+
+# STS - emp_backend
+emp_backend/.apt_generated
+emp_backend/.classpath
+emp_backend/.factorypath
+emp_backend/.project
+emp_backend/.settings
+emp_backend/.springBeans
+emp_backend/.sts4-cache
+
+# IntelliJ IDEA - emp_backend
+emp_backend/.idea
+emp_backend/*.iws
+emp_backend/*.iml
+emp_backend/*.ipr
+
+# NetBeans - emp_backend
+emp_backend/nbproject/private/
+emp_backend/nbbuild/
+emp_backend/dist/
+emp_backend/nbdist/
+emp_backend/.nb-gradle/
+emp_backend/build/
+emp_backend!**/src/main/**/build/
+emp_backend!**/src/test/**/build/
+
+# VS Code - emp_backend
+emp_backend/.vscode/
+
+### Frontend (emp_frontend) ###
+
+# Compiled output - emp_frontend
+emp_frontend/dist
+emp_frontend/tmp
+emp_frontend/out-tsc
+emp_frontend/bazel-out
+
+# Node - emp_frontend
+emp_frontend/node_modules
+emp_frontend/npm-debug.log
+emp_frontend/yarn-error.log
+
+# IDEs and editors - emp_frontend
+emp_frontend/.idea/
+emp_frontend/.project
+emp_frontend/.classpath
+emp_frontend/.c9/
+emp_frontend/*.launch
+emp_frontend/.settings/
+emp_frontend/*.sublime-workspace
+
+# Visual Studio Code - emp_frontend
+emp_frontend/.vscode/*
+emp_frontend!.vscode/settings.json
+emp_frontend!.vscode/tasks.json
+emp_frontend!.vscode/launch.json
+emp_frontend!.vscode/extensions.json
+emp_frontend/.history/*
+
+# Miscellaneous - emp_frontend
+emp_frontend/.angular/cache
+emp_frontend/.sass-cache/
+emp_frontend/connect.lock
+emp_frontend/coverage
+emp_frontend/libpeerconnection.log
+emp_frontend/testem.log
+emp_frontend/typings
+
+# System files - emp_frontend
+emp_frontend/.DS_Store
+emp_frontend/Thumbs.db
+

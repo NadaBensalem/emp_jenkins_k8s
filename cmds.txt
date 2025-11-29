@@ -1,0 +1,38 @@
+### Commandes backend spring:
+-- Build
+
+mvn clean install -DskipTests
+
+-- Run
+
+java -jar target/emp_backend-0.0.1-SNAPSHOT.jar
+
+
+
+### Commandes frontend angular:
+-- Build
+
+Dev (par défaut) : npm run build
+
+Prod Docker : npm run build:prod-docker
+
+Prod K8s : npm run build:prod-k8s
+
+-- Run
+
+Utilise les scripts start:* — 
+
+Dev :
+
+npm run start:dev
+
+
+Prod-Docker (pour tester la conf prod-docker) :
+
+npm run start:prod-docker
+
+
+Prod-K8s (pour tester la conf prod-k8s) :
+
+npm run start:prod-k8s
+
