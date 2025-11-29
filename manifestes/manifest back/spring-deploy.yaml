@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spring-deplo # Nom du déploiement pour l'application Spring Boot
+  namespace: emp
+  labels:
+    app: spring-app # Label pour identifier l'application
+spec:
+  replicas: 2 # Nombre de réplicas pour assurer la haute disponibilité
+  selector:
+    matchLabels:
+      app: spring-app # Sélection des pods correspondant à ce label
+  template:
+    metadata:
+      labels:
+        app: spring-app # Étiquette appliquée aux pods pour le service
+    spec:
+      containers:
+        - name: spring-app-cont
+          image: nadabensalem/image-emp-backend # Image Docker de l'application Spring Boot
+          resources: # Allocation des ressources pour éviter la surconsommation
+            limits:
+              memory: "400Mi" # Limite de mémoire à 400 Mo
+              cpu: "0.4" # Limite d'utilisation du CPU à 0.4 vCPU
+            requests:
+              memory: "250Mi" # Minimum de mémoire demandé (250 Mo)
+              cpu: "0.2" # Minimum de CPU demandé (0.2 vCPU)
+          ports:
+            - containerPort: 8050 # Port sur lequel l'application Spring Boot écoute 7atitih enty fi server.port=8050 fel application.proprities
+          env:
+            - name: MYSQL_USER # Nom de l'utilisateur de la base de données
+              valueFrom:
+                secretKeyRef:
+                  name: spring-secrets # Référence au Secret contenant le nom d'utilisateur
+                  key: user-username
+            - name: MYSQL_PASSWORD # Mot de passe de l'utilisateur
+              valueFrom:
+                secretKeyRef:
+                  name: spring-secrets
+                  key: user-password
+            - name: MYSQL_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-cm # Référence au ConfigMap contenant l'hôte MySQL
+                  key: db-host
+            - name: MYSQL_DBNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: spring-cm # Référence au ConfigMap contenant le nom de la base de données
+                  key: db-name

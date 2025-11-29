@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: angular-deplo # Nom du déploiement pour l'application Angular
+  namespace: emp
+  labels:
+    app: angular-app # Étiquette permettant d'identifier les ressources liées à cette application
+spec:
+  replicas: 2 # Nombre de réplicas (2 pods pour assurer la haute disponibilité)
+  selector:
+    matchLabels:
+      app: angular-app # Sélection des pods correspondant à ce label
+  template:
+    metadata:
+      labels:
+        app: angular-app # Étiquette appliquée aux pods pour les associer au Service
+    spec:
+      containers:
+        - name: angular-app-cont
+          image: nadabensalem/image-emp-frontend # Image Docker de l'application Angular
+          resources: # Allocation des ressources pour éviter une consommation excessive
+            limits:
+              memory: "350Mi" # Limite de mémoire à 350 Mo
+              cpu: "0.3" # Limite de CPU à 0.3 vCPU
+            requests:
+              memory: "150Mi" # Requête minimale de mémoire (150 Mo)
+              cpu: "0.1" # Requête minimale de CPU (0.1 vCPU)
+          ports:
+            - containerPort: 80 # Port sur lequel l'application Angular est servie par defaut nginx sur 80
+      imagePullSecrets: #si image docker sur docker hub is private
+        - name: regcred #esm eli samitou fel commande kubectl create secret docker-registry regcred --docker-server=https://index.docker.io/v1/ --docker-username=nadabensalem --docker-password=11918788@Nada -n emp

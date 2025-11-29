@@ -1,0 +1,93 @@
+# ==========================
+# Fichier docker-compose.yml
+# Stack: Backend (Spring Boot) + Frontend (Angular/Nginx) + MySQL + phpMyAdmin
+# Réseau unique: emp_net / Volume de données: emp_data
+# ==========================
+
+services:
+  # ------------------------
+  # Service Backend (Spring Boot)
+  # ------------------------
+  emp_backend:
+    image: emp_backend_img:latest # Image Docker du backend (doit être buildée avant: docker build -t emp_backend:latest emp_backend/.)
+    container_name: emp_backend_cont # Nom du conteneur pour le backend
+    ports:
+      - "8090:8050" # Expose le port 8050 interne (Spring Boot) sur le port 8090 de la machine hôte
+        # => L’API sera accessible via http://localhost:8090
+    restart: always # Relance auto en cas de crash
+    depends_on:
+      - db # Démarre après la base MySQL
+    environment:
+      # Chaîne de connexion MySQL (hôte = nom du service "db" sur le réseau Docker)
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/emp_db?createDatabaseIfNotExist=true
+      SPRING_DATASOURCE_USERNAME: nada
+      SPRING_DATASOURCE_PASSWORD: nada123
+    networks:
+      - emp_net_back_sql # Place le backend sur le réseau applicatif
+      - emp_net_back_front
+
+  # ------------------------
+  # Service Frontend (Angular packagé dans Nginx)
+  # ------------------------
+  emp_frontend:
+    image: emp_frontend_img:latest # Image Docker du frontend (doit être buildée avant: docker build -t emp_frontend:latest emp_frontend/.)
+    container_name: emp_frontend_cont # Nom du conteneur pour le frontend
+    ports:
+      - "8070:80" # Expose Nginx (port 80 interne) sur 8070 de la machine hôte
+        # => L’app sera accessible via http://localhost:8070
+    restart: always
+    depends_on:
+      - emp_backend # Démarre après le backend (utile si l’app appelle l’API au démarrage)
+    networks:
+      - emp_net_back_front
+
+  # ------------------------
+  # Service Base de Données (MySQL)
+  # ------------------------
+  db:
+    image: mysql:latest # Image officielle MySQL
+    container_name: emp_mysql_cont
+    volumes:
+      - emp_data:/var/lib/mysql # Volume persistant pour les données MySQL
+    restart: always
+    environment:
+      MYSQL_DATABASE: emp_db # Base créée au démarrage si absente
+      MYSQL_USER: nada # Utilisateur applicatif
+      MYSQL_PASSWORD: nada123 # Mot de passe utilisateur applicatif
+      MYSQL_ROOT_PASSWORD: root # Mot de passe root MySQL
+    networks:
+      - emp_net_back_sql
+      - emp_net_sql_php
+
+  # ------------------------
+  # Service phpMyAdmin (UI Web pour MySQL)
+  # ------------------------
+  phpmyadmin:
+    image: phpmyadmin # Image officielle phpMyAdmin
+    container_name: emp_phpmyadmin_cont
+    restart: always
+    depends_on:
+      - db
+    ports:
+      - "8071:80" # UI phpMyAdmin: http://localhost:8071
+    environment:
+      - PMA_ARBITRARY=1 # Autorise la saisie manuelle de l'hôte MySQL (pratique, mais moins restrictif)
+      # Recommandé pour forcer un serveur précis :
+      # - PMA_HOST=db                  # Se connecter directement au service MySQL "db"
+      # - PMA_PORT=3306
+    networks:
+      - emp_net_sql_php
+
+# ------------------------
+# Volumes (persistance des données)
+# ------------------------
+volumes:
+  emp_data: # Volume nommé pour conserver les données MySQL entre redéploiements
+
+# ------------------------
+# Réseaux (isolation et DNS interne)
+# ------------------------
+networks:
+  emp_net_sql_php: # Réseau bridge dédié ; les services se résolvent par leur nom (emp_backend, db, etc.)
+  emp_net_back_sql:
+  emp_net_back_front:
