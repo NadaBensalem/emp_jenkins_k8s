@@ -113,7 +113,7 @@ pipeline {
         always {
             echo "Pipeline terminé."
             // Nettoyage du kubeconfig temporaire
-        //    bat 'del /F /Q kubeconfig'
+            bat 'del /F /Q kubeconfig'
     }
 }
 }
