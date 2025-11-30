@@ -16,8 +16,8 @@ pipeline {
         FRONTEND_TAG = "latest"
         
         // Dossiers sources
-        backendF = "employee-management/emp_backend"
-        frontendF = "employee-management/emp_frontend"
+        backendF = "employee-management_docker_jenkins_k8s/emp_backend"
+        frontendF = "employee-management_docker_jenkins_k8s/emp_frontend"
 
         GIT_REPO = "https://github.com/NadaBensalem/emp_jenkins_k8s.git"
         
@@ -26,6 +26,17 @@ pipeline {
     }
 
     stages {
+             stage('clone projet from github') {
+            steps {
+                echo "==> Récupération du code source depuis GitHub"
+
+                /* Clone le repo avec tes identifiants Jenkins ''
+                   - branch: mets 'main' ou 'master' selon ta branche */
+                git branch: 'master',
+                    credentialsId: 'github-cred',
+                    url: "${GIT_REPO}"
+            }
+        }
         stage('Build Docker Image - Backend') {
             steps {
                 echo "==> Build de l'image Docker backend"
