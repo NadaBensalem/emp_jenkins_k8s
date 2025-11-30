@@ -89,17 +89,14 @@ pipeline {
                             set KUBECONFIG=.\\kubeconfig
 
 
-                            echo === DEBUG: Kubectl test ===
-                            kubectl config current-context
-                            kubectl get nodes
                             REM Déployer le backend
-                            kubectl apply -f manifests\\manifestback\\spring-deploy.yaml -n %K8S_NAMESPACE%
+                            kubectl apply -f manifests/manifestback/spring-deploy.yaml -n %K8S_NAMESPACE%
 
                             REM Attendre 30 secondes
                             timeout /t 30
 
                             REM Déployer le frontend
-                            kubectl apply -f manifests\\manifestfront\\angular-deploy.yaml -n %K8S_NAMESPACE%
+                            kubectl apply -f manifests/manifestfront/angular-deploy.yaml -n %K8S_NAMESPACE%
 
                             REM Vérification finale
                             echo === Pods ===
