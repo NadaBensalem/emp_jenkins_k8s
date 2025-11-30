@@ -26,47 +26,33 @@ pipeline {
     }
 
     stages {
-             stage('clone projet from github') {
-            steps {
-                echo "==> Récupération du code source depuis GitHub"
-
-                /* Clone le repo avec tes identifiants Jenkins ''
-                   - branch: mets 'main' ou 'master' selon ta branche */
-                git branch: 'master',
-                    credentialsId: 'github-cred',
-                    url: "${GIT_REPO}"
-            }
-        }
         stage('Build Docker Image - Backend') {
             steps {
                 echo "==> Build de l'image Docker backend"
-                // bat """
-                //     docker build -t ${backendimage}:${BACKEND_TAG} ${backendF}
-                // """
                  bat """
                      docker build -t ${backendimage}:${BACKEND_TAG} ${backendF}
                  """
             }
         }
 
-        // stage('Push Docker Image - Backend') {
-        //     steps {
-        //         echo "==> Push de l'image sur Docker Hub (tag: BACKEND_TAG)"
-        //         script {
-        //             withCredentials([usernamePassword(
-        //                 credentialsId: 'dockerhub-cred',
-        //                 usernameVariable: 'DOCKERHUB_USER',
-        //                 passwordVariable: 'DOCKERHUB_PASS'
-        //             )]) {
-        //                 bat """
-        //                     echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
-        //                     docker push ${backendimage}:${BACKEND_TAG}
-        //                     docker logout
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Push Docker Image - Backend') {
+            steps {
+                echo "==> Push de l'image sur Docker Hub (tag: BACKEND_TAG)"
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub-cred',
+                        usernameVariable: 'DOCKERHUB_USER',
+                        passwordVariable: 'DOCKERHUB_PASS'
+                    )]) {
+                        bat """
+                            echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+                            docker push ${backendimage}:${BACKEND_TAG}
+                            docker logout
+                        """
+                    }
+                }
+            }
+        }
 
         stage('Build Docker Image - Frontend') {
             steps {
@@ -77,57 +63,23 @@ pipeline {
             }
         }
 
-        // stage('Push Docker Image - Frontend') {
-        //     steps {
-        //         script {
-        //             withCredentials([usernamePassword(
-        //                 credentialsId: 'dockerhub-cred',
-        //                 usernameVariable: 'DOCKERHUB_USER',
-        //                 passwordVariable: 'DOCKERHUB_PASS'
-        //             )]) {
-        //                 bat """
-        //                     echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
-        //                     docker push ${frontendimage}:${FRONTEND_TAG}
-        //                     docker logout
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
-
-        // stage('Deploy to Minikube') {
-        //     steps {
-        //         script {
-        //             // Utiliser les credentials kubeconfig portable
-        //             withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
-        //               //  Déployer le backend
-        //                 bat """
-        //                      copy %KUBECONFIG_FILE% kubeconfig
-        //                      set KUBECONFIG=.\\kubeconfig
-                            
-        //                     # Appliquer les manifests
-        //                      kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
-                            
-        //                     # Attendre le déploiement
-        //                     # Attendre 30 secondes
-        //                       timeout /t 30
-        //                 """
-        //               //  Déployer le frontend
-        //                 bat """
-        //                     kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
-        //                 """
-                        
-        //                 // Vérification finale
-        //                 bat """
-        //                     echo "=== Pods ==="
-        //                     kubectl get pods -n %K8S_NAMESPACE%
-        //                     echo "=== Services ==="
-        //                     kubectl get services -n %K8S_NAMESPACE%
-        //                 """
-        //             }
-        //         }
-        //     }
-        // }
+        stage('Push Docker Image - Frontend') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub-cred',
+                        usernameVariable: 'DOCKERHUB_USER',
+                        passwordVariable: 'DOCKERHUB_PASS'
+                    )]) {
+                        bat """
+                            echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+                            docker push ${frontendimage}:${FRONTEND_TAG}
+                            docker logout
+                        """
+                    }
+                }
+            }
+        }
         stage('Deploy to Minikube') {
             steps {
                 script {

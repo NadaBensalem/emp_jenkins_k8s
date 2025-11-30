@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: spring-app-cont
-          image: nadabensalem/image-emp-backend:v0 # Image Docker de l'application Spring Boot
+          image: nadabensalem/image-emp-backend:v0.1 # Image Docker de l'application Spring Boot
           resources: # Allocation des ressources pour éviter la surconsommation
             limits:
               memory: "400Mi" # Limite de mémoire à 400 Mo
