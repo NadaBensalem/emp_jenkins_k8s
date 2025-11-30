@@ -8,16 +8,16 @@ pipeline {
     environment {
         // Variables pour les images Docker
         DOCKERHUB_USER = "NadaBensalem"
-        backendimage = "${DOCKERHUB_USER}/image-emp-backend"
-        frontendimage = "${DOCKERHUB_USER}/image-emp-frontend"     
+        backendimage = "${DOCKERHUB_USER}/img-emp-backend"
+        frontendimage = "${DOCKERHUB_USER}/img-emp-frontend"     
         
         // Tags d'images
         BACKEND_TAG = "latest"
         FRONTEND_TAG = "latest"
         
         // Dossiers sources
-        backendF = "emp_backend"
-        frontendF = "emp_frontend"
+        backendF = "employee-management/emp_backend"
+        frontendF = "employee-management/emp_frontend"
 
         GIT_REPO = "https://github.com/NadaBensalem/emp_jenkins_k8s.git"
         
@@ -33,7 +33,7 @@ pipeline {
                 //     docker build -t ${backendimage}:${BACKEND_TAG} ${backendF}
                 // """
                  bat """
-                     docker build -t ${backend_image}:${BACKEND_TAG} ${backendF}
+                     docker build -t ${backendimage}:${BACKEND_TAG} ${backendF}
                  """
             }
         }
@@ -84,48 +84,73 @@ pipeline {
             }
         }
 
-        stage('Deploy to Minikube') {
-            steps {
-                script {
-                    // Utiliser les credentials kubeconfig portable
-                    withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
-                      //  Déployer le backend
-                        bat """
-                             copy %KUBECONFIG_FILE% kubeconfig
-                             set KUBECONFIG=.\\kubeconfig
+        // stage('Deploy to Minikube') {
+        //     steps {
+        //         script {
+        //             // Utiliser les credentials kubeconfig portable
+        //             withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+        //               //  Déployer le backend
+        //                 bat """
+        //                      copy %KUBECONFIG_FILE% kubeconfig
+        //                      set KUBECONFIG=.\\kubeconfig
                             
-                            # Appliquer les manifests
-                             kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
+        //                     # Appliquer les manifests
+        //                      kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
                             
-                            # Attendre le déploiement
-                        """
+        //                     # Attendre le déploiement
+        //                     # Attendre 30 secondes
+        //                       timeout /t 30
+        //                 """
+        //               //  Déployer le frontend
+        //                 bat """
+        //                     kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
+        //                 """
                         
-                      //  Attendre 30 secondes
-                       timeout /t 30
-                        
-                      //  Déployer le frontend
-                        bat """
-                            kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
-                        """
-                        
-                        // Vérification finale
-                        bat """
-                            echo "=== Pods ==="
-                            kubectl get pods -n %K8S_NAMESPACE%
-                            echo "=== Services ==="
-                            kubectl get services -n %K8S_NAMESPACE%
-                        """
-                    }
-                }
-            }
-        }
+        //                 // Vérification finale
+        //                 bat """
+        //                     echo "=== Pods ==="
+        //                     kubectl get pods -n %K8S_NAMESPACE%
+        //                     echo "=== Services ==="
+        //                     kubectl get services -n %K8S_NAMESPACE%
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
+        // stage('Deploy to Minikube') {
+        //     steps {
+        //         script {
+        //             withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+        //                 bat """
+        //                     copy %KUBECONFIG_FILE% kubeconfig
+        //                     set KUBECONFIG=.\\kubeconfig
+
+        //                     REM Déployer le backend
+        //                     kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
+
+        //                     REM Attendre 30 secondes
+        //                     timeout /t 30
+
+        //                     REM Déployer le frontend
+        //                     kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
+
+        //                     REM Vérification finale
+        //                     echo === Pods ===
+        //                     kubectl get pods -n %K8S_NAMESPACE%
+        //                     echo === Services ===
+        //                     kubectl get services -n %K8S_NAMESPACE%
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {
         always {
             echo "Pipeline terminé."
             // Nettoyage du kubeconfig temporaire
-           bat 'del /F /Q kubeconfig'
+        //    bat 'del /F /Q kubeconfig'
     }
 }
-
+}
