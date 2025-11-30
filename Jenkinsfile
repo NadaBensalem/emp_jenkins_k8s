@@ -1,198 +1,135 @@
 pipeline {
-    /* On dit à Jenkins d'exécuter le pipeline sur n'importe quel agent.
-       ⚠ Cet agent doit avoir Docker installé et le droit d'exécuter "docker build / docker push". */
     agent any
-    // tools {
-    //     // Déclare l'utilisation de la version de Maven configurée dans Jenkins (maven384)
-    //      maven 'maven384'  // Nom de l'outil Maven configuré dans Jenkins
-    // }
-    /* Variables globales */
+
+    tools {
+        maven 'maven384'
+    }
+
     environment {
-        // Nom local de l'image 
-        backend_image = "emp_backend_img"
-        frontend_image = "emp_frontend_img"
+        // Variables pour les images Docker
+        DOCKERHUB_USER = "NadaBensalem"
+        backendimage = "${DOCKERHUB_USER}/image-emp-backend"
+        frontendimage = "${DOCKERHUB_USER}/image-emp-frontend"     
         
-        //  // Sonarqube env 
-        // SONARQUBE_URL = 'http://localhost:9000'  
-        // SONAR_TOKEN = 'a3eb29305a87204344cb70bd743abf2fded33f76' 
-        // Repo folders from repo GitHub
+        // Tags d'images
+        BACKEND_TAG = "latest"
+        FRONTEND_TAG = "latest"
         
+        // Dossiers sources
         backendF = "emp_backend"
         frontendF = "emp_frontend"
 
-        // URL du repo GitHub
         GIT_REPO = "https://github.com/NadaBensalem/emp_jenkins_k8s.git"
+        
+        // Variables pour Minikube
+        K8S_NAMESPACE = "emp"
     }
 
     stages {
-
-        stage('clone projet from github') {
+        stage('Build Docker Image - Backend') {
             steps {
-                echo "==> Récupération du code source depuis GitHub"
-
-                /* Clone le repo avec tes identifiants Jenkins ''
-                   - branch: mets 'main' ou 'master' selon ta branche */
-                git branch: 'master',
-                    credentialsId: 'github-cred',
-                    url: "${GIT_REPO}"
+                echo "==> Build de l'image Docker backend"
+                // sh """
+                //     docker build -t ${backendimage}:${BACKEND_TAG} ${backendF}
+                // """
+                 bat """
+                     docker build -t ${backend_image}:${BACKEND_TAG} ${backendF}
+                 """
             }
         }
 
-        stage('Build Docker Image emp -- backend') {
+        stage('Push Docker Image - Backend') {
             steps {
-                echo "==> Build de l'image Docker locale"
-
-                /* On construit l'image Docker en tag 'latest'
-                   Le Dockerfile doit être à la racine du repo */
-                bat """
-                    docker build -t ${backend_image}:latest ${backendF}
-                """
-            }
-        }
-
-        stage('Push Docker Image emp -- backend') {
-            steps {
-                echo "==> Push de l'image sur Docker Hub (tag: latest)"
-
-                /* On utilise les identifiants Jenkins ''
-                   ATTENTION :
-                   - usernameVariable = ton username Docker Hub
-                   - passwordVariable = le mot de passe / token Docker Hub
-                */
+                echo "==> Push de l'image sur Docker Hub (tag: BACKEND_TAG)"
                 script {
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-cred',
                         usernameVariable: 'DOCKERHUB_USER',
                         passwordVariable: 'DOCKERHUB_PASS'
                     )]) {
-
-                        // login Docker Hub
                         bat """
-                           echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+                            echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+                            docker push ${backendimage}:${BACKEND_TAG}
+                            docker logout
                         """
-
-                        // retag l'image locale avec ton namespace Docker Hub
-                        bat """
-                            docker tag ${backend_image}:latest %DOCKERHUB_USER%/${backend_image}:latest
-                            docker push %DOCKERHUB_USER%/${backend_image}:latest
-                        """
-
-                        // logout 
-                        bat "docker logout"
                     }
                 }
             }
         }
 
-        stage('Build Docker Image emp -- frontend') {
+        stage('Build Docker Image - Frontend') {
             steps {
-                echo "==> Build de l'image Docker locale"
-
-                /* On construit l'image Docker en tag 'latest'
-                   Le Dockerfile doit être à la racine du repo */
+                echo "==> Build de l'image Docker frontend"
                 bat """
-                    docker build -t ${frontend_image}:latest ${frontendF}
+                    docker build -t ${frontendimage}:${FRONTEND_TAG} ${frontendF}
                 """
             }
         }
 
-        stage('Push Docker Image emp -- frontend') {
+        stage('Push Docker Image - Frontend') {
             steps {
-                echo "==> Push de l'image sur Docker Hub (tag: latest)"
-
-                /* On utilise les identifiants Jenkins ''
-                   ATTENTION :
-                   - usernameVariable = ton username Docker Hub
-                   - passwordVariable = le mot de passe / token Docker Hub
-                */
                 script {
                     withCredentials([usernamePassword(
                         credentialsId: 'dockerhub-cred',
                         usernameVariable: 'DOCKERHUB_USER',
                         passwordVariable: 'DOCKERHUB_PASS'
                     )]) {
-
-                        // login Docker Hub
                         bat """
-                             echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+                            echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+                            docker push ${frontendimage}:${FRONTEND_TAG}
+                            docker logout
                         """
-
-                        // retag l'image locale avec ton namespace Docker Hub
-                        bat """
-                            docker tag ${frontend_image}:latest %DOCKERHUB_USER%/${frontend_image}:latest
-                            docker push %DOCKERHUB_USER%/${frontend_image}:latest
-                        """
-
-                        // logout 
-                        bat "docker logout"
                     }
                 }
             }
         }
 
-        stage('Run Containers with Docker Compose') {
+        stage('Deploy to Minikube') {
             steps {
-                echo "==> Lancement des conteneurs avec Docker Compose"
                 script {
-                     // Exécute docker compose 
-                    bat """
-                     cd employee-management
-                     docker compose up -d
-                     """
+                    // Utiliser les credentials kubeconfig portable
+                    withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+                      //  Déployer le backend
+                        bat """
+                            cp ${KUBECONFIG_FILE} ./kubeconfig
+                            chmod 600 ./kubeconfig
+                            export KUBECONFIG=./kubeconfig
+                            
+                            # Appliquer les manifests
+                            kubectl apply -f Manifests-k8s/spring-deploy.yaml -n ${K8S_NAMESPACE}
+                            
+                            # Attendre le déploiement
+                        """
+                        
+                      //  Attendre 30 secondes
+                       sleep 30
+                        
+                      //  Déployer le frontend
+                        sh """
+                            export KUBECONFIG=./kubeconfig
+                            kubectl apply -f Manifests-k8s/angular-deploy.yaml -n ${K8S_NAMESPACE}
+                        """
+                        
+                        // Vérification finale
+                        sh """
+                            export KUBECONFIG=./kubeconfig
+                            echo "=== Pods ==="
+                            kubectl get pods -n ${K8S_NAMESPACE}
+                            echo "=== Services ==="
+                            kubectl get services -n ${K8S_NAMESPACE}
+                        """
+                    }
                 }
-             }
+            }
         }
-
-        //  stage('SonarQube - Backend') {
-        //      steps {
-        //          dir('employee-management/emp_backend') {  // Entre dans le répertoire du projet backend
-        //             echo "==> Test qualité de code ... "
-        //             // Analyse SonarQube en utilisant Maven sur Windows
-        //             bat """
-        //                  mvn clean install -DskipTests ^
-        //                  && mvn sonar:sonar ^
-        //                 -Dsonar.projectKey=emp_backend ^
-        //                 -Dsonar.host.url=%SONARQUBE_URL% ^
-        //                 -Dsonar.login=%SONAR_TOKEN%
-        //                 """
-        //         }   
-        //     }
-        // }
-
-        //  stage('Build du Projet et Déposer l\'artifact vers Nexus') {
-        //     steps {
-        //         script {
-        //             // 1. Effectuer le build dans le répertoire emp_backend
-        //             dir('employee-management/emp_backend') {
-        //                 echo "==> Build du projet dans le répertoire emp_backend"
-        //                 bat 'mvn clean install -DskipTests'  // Exécute le build dans le répertoire emp_backend
-        //             }
-
-        //             // 2. Déposer l'artefact vers Nexus
-        //             echo "==> Déposer l\'artifact vers Nexus"
-        //             nexusArtifactUploader artifacts: [
-        //                 [
-        //                     artifactId: 'emp_backend',
-        //                     classifier: '',
-        //                     file: 'employee-management/emp_backend/target/emp_backend-0.0.1-SNAPSHOT.jar',  // Chemin vers le JAR généré
-        //                     type: 'jar'
-        //                 ]
-        //             ],
-        //             credentialsId: 'nexus-cred',  // ID des credentials Jenkins pour Nexus
-        //             groupId: 'com.example',           // GroupId du projet
-        //             nexusUrl: 'localhost:8081',  // URL de Nexus
-        //             nexusVersion: 'nexus3',        // Version de Nexus
-        //             protocol: 'http',              // Protocole
-        //             repository: 'emp-jar-repo',        // Repository Nexus
-        //             version: '0.0.1-SNAPSHOT'     // Version de l'artefact
-        //         }
-        //     }
-        // }
     }
 
     post {
         always {
             echo "Pipeline terminé."
+            // Nettoyage du kubeconfig temporaire
+            sh 'rm -f ./kubeconfig'
         }
     }
 }
+
