@@ -12,8 +12,8 @@ pipeline {
         frontendimage = "${DOCKERHUB_USER}/img-emp-frontend"     
         
         // Tags d'images
-        BACKEND_TAG = "latest"
-        FRONTEND_TAG = "latest"
+        BACKEND_TAG = "v0.1"
+        FRONTEND_TAG = "v0.1"
         
         // Dossiers sources
         backendF = "emp_backend"
