@@ -7,7 +7,7 @@ pipeline {
 
     environment {
         // Variables pour les images Docker
-        DOCKERHUB_USER = "NadaBensalem"
+        DOCKERHUB_USER = "nadabensalem"
         backendimage = "${DOCKERHUB_USER}/img-emp-backend"
         frontendimage = "${DOCKERHUB_USER}/img-emp-frontend"     
         
