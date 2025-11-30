@@ -128,33 +128,33 @@ pipeline {
         //         }
         //     }
         // }
-        stage('Deploy to Minikube') {
-            steps {
-                script {
-                    withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
-                        bat """
-                            copy %KUBECONFIG_FILE% kubeconfig
-                            set KUBECONFIG=.\\kubeconfig
+        // stage('Deploy to Minikube') {
+        //     steps {
+        //         script {
+        //             withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
+        //                 bat """
+        //                     copy %KUBECONFIG_FILE% kubeconfig
+        //                     set KUBECONFIG=.\\kubeconfig
 
-                            REM Déployer le backend
-                            kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
+        //                     REM Déployer le backend
+        //                     kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
 
-                            REM Attendre 30 secondes
-                            timeout /t 30
+        //                     REM Attendre 30 secondes
+        //                     timeout /t 30
 
-                            REM Déployer le frontend
-                            kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
+        //                     REM Déployer le frontend
+        //                     kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
 
-                            REM Vérification finale
-                            echo === Pods ===
-                            kubectl get pods -n %K8S_NAMESPACE%
-                            echo === Services ===
-                            kubectl get services -n %K8S_NAMESPACE%
-                        """
-                    }
-                }
-            }
-        }
+        //                     REM Vérification finale
+        //                     echo === Pods ===
+        //                     kubectl get pods -n %K8S_NAMESPACE%
+        //                     echo === Services ===
+        //                     kubectl get services -n %K8S_NAMESPACE%
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     post {
