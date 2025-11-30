@@ -49,24 +49,24 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image - Backend') {
-            steps {
-                echo "==> Push de l'image sur Docker Hub (tag: BACKEND_TAG)"
-                script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-cred',
-                        usernameVariable: 'DOCKERHUB_USER',
-                        passwordVariable: 'DOCKERHUB_PASS'
-                    )]) {
-                        bat """
-                            echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
-                            docker push ${backendimage}:${BACKEND_TAG}
-                            docker logout
-                        """
-                    }
-                }
-            }
-        }
+        // stage('Push Docker Image - Backend') {
+        //     steps {
+        //         echo "==> Push de l'image sur Docker Hub (tag: BACKEND_TAG)"
+        //         script {
+        //             withCredentials([usernamePassword(
+        //                 credentialsId: 'dockerhub-cred',
+        //                 usernameVariable: 'DOCKERHUB_USER',
+        //                 passwordVariable: 'DOCKERHUB_PASS'
+        //             )]) {
+        //                 bat """
+        //                     echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+        //                     docker push ${backendimage}:${BACKEND_TAG}
+        //                     docker logout
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
 
         stage('Build Docker Image - Frontend') {
             steps {
@@ -77,23 +77,23 @@ pipeline {
             }
         }
 
-        stage('Push Docker Image - Frontend') {
-            steps {
-                script {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-cred',
-                        usernameVariable: 'DOCKERHUB_USER',
-                        passwordVariable: 'DOCKERHUB_PASS'
-                    )]) {
-                        bat """
-                            echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
-                            docker push ${frontendimage}:${FRONTEND_TAG}
-                            docker logout
-                        """
-                    }
-                }
-            }
-        }
+        // stage('Push Docker Image - Frontend') {
+        //     steps {
+        //         script {
+        //             withCredentials([usernamePassword(
+        //                 credentialsId: 'dockerhub-cred',
+        //                 usernameVariable: 'DOCKERHUB_USER',
+        //                 passwordVariable: 'DOCKERHUB_PASS'
+        //             )]) {
+        //                 bat """
+        //                     echo %DOCKERHUB_PASS% | docker login -u %DOCKERHUB_USER% --password-stdin
+        //                     docker push ${frontendimage}:${FRONTEND_TAG}
+        //                     docker logout
+        //                 """
+        //             }
+        //         }
+        //     }
+        // }
 
         // stage('Deploy to Minikube') {
         //     steps {
@@ -137,13 +137,13 @@ pipeline {
                             set KUBECONFIG=.\\kubeconfig
 
                             REM Déployer le backend
-                            kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
+                            kubectl apply -f manifests\\manifestback\\spring-deploy.yaml -n %K8S_NAMESPACE%
 
                             REM Attendre 30 secondes
                             timeout /t 30
 
                             REM Déployer le frontend
-                            kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
+                            kubectl apply -f manifests\\manifestfront\\angular-deploy.yaml -n %K8S_NAMESPACE%
 
                             REM Vérification finale
                             echo === Pods ===
