@@ -133,7 +133,7 @@ pipeline {
                 script {
                     withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                         bat """
-                            copy %KUBECONFIG_FILE% kubeconfig
+                            copy "%KUBECONFIG_FILE%" kubeconfig
                             set KUBECONFIG=.\\kubeconfig
 
                             REM Déployer le backend
