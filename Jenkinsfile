@@ -29,7 +29,7 @@ pipeline {
         stage('Build Docker Image - Backend') {
             steps {
                 echo "==> Build de l'image Docker backend"
-                // sh """
+                // bat """
                 //     docker build -t ${backendimage}:${BACKEND_TAG} ${backendF}
                 // """
                  bat """
@@ -91,32 +91,29 @@ pipeline {
                     withCredentials([file(credentialsId: 'minikube-kubeconfig', variable: 'KUBECONFIG_FILE')]) {
                       //  Déployer le backend
                         bat """
-                            cp ${KUBECONFIG_FILE} ./kubeconfig
-                            chmod 600 ./kubeconfig
-                            export KUBECONFIG=./kubeconfig
+                             copy %KUBECONFIG_FILE% kubeconfig
+                             set KUBECONFIG=.\\kubeconfig
                             
                             # Appliquer les manifests
-                            kubectl apply -f Manifests-k8s/spring-deploy.yaml -n ${K8S_NAMESPACE}
+                             kubectl apply -f manifests\\spring-deploy.yaml -n %K8S_NAMESPACE%
                             
                             # Attendre le déploiement
                         """
                         
                       //  Attendre 30 secondes
-                       sleep 30
+                       timeout /t 30
                         
                       //  Déployer le frontend
-                        sh """
-                            export KUBECONFIG=./kubeconfig
-                            kubectl apply -f Manifests-k8s/angular-deploy.yaml -n ${K8S_NAMESPACE}
+                        bat """
+                            kubectl apply -f manifests\\angular-deploy.yaml -n %K8S_NAMESPACE%
                         """
                         
                         // Vérification finale
-                        sh """
-                            export KUBECONFIG=./kubeconfig
+                        bat """
                             echo "=== Pods ==="
-                            kubectl get pods -n ${K8S_NAMESPACE}
+                            kubectl get pods -n %K8S_NAMESPACE%
                             echo "=== Services ==="
-                            kubectl get services -n ${K8S_NAMESPACE}
+                            kubectl get services -n %K8S_NAMESPACE%
                         """
                     }
                 }
@@ -128,8 +125,7 @@ pipeline {
         always {
             echo "Pipeline terminé."
             // Nettoyage du kubeconfig temporaire
-            sh 'rm -f ./kubeconfig'
-        }
+           bat 'del /F /Q kubeconfig'
     }
 }
 
