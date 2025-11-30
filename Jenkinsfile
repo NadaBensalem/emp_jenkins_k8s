@@ -16,8 +16,8 @@ pipeline {
         FRONTEND_TAG = "latest"
         
         // Dossiers sources
-        backendF = "employee-management_docker_jenkins_k8s/emp_backend"
-        frontendF = "employee-management_docker_jenkins_k8s/emp_frontend"
+        backendF = "emp_backend"
+        frontendF = "emp_frontend"
 
         GIT_REPO = "https://github.com/NadaBensalem/emp_jenkins_k8s.git"
         
