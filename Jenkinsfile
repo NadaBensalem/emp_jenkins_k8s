@@ -88,6 +88,10 @@ pipeline {
                             copy "%KUBECONFIG_FILE%" kubeconfig
                             set KUBECONFIG=.\\kubeconfig
 
+
+                            echo === DEBUG: Kubectl test ===
+                            kubectl config current-context
+                            kubectl get nodes
                             REM Déployer le backend
                             kubectl apply -f manifests\\manifestback\\spring-deploy.yaml -n %K8S_NAMESPACE%
 
