@@ -92,10 +92,10 @@ pipeline {
                             REM Déployer le backend
                             kubectl apply -f manifestes/manifestback/spring-deploy.yaml -n %K8S_NAMESPACE%
 
-                            REM Attendre 30 secondes
-                            timeout /t 30
+                            REM Attendre 30 secondes pour backend up 
+                            timeout /t 50
 
-                            REM Déployer le frontend
+                            REM Déployer le frontend 
                             kubectl apply -f manifestes/manifestfront/angular-deploy.yaml -n %K8S_NAMESPACE%
 
                             REM Vérification finale
